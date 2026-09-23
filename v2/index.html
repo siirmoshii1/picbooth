@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Photobooth Studio Pro (V2) - Vintage & Classic</title>
+  <meta name="description" content="Professional high-definition photobooth studio web application with vintage film filters, multi-device support, format editing, and instant print/save.">
+
+  <!-- Google Fonts: Inter, Playfair Display, Cinzel, Bebas Neue, Special Elite -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&family=Special+Elite&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Master Stylesheet -->
+  <link rel="stylesheet" href="css/v2-style.css">
+</head>
+<body>
+
+  <!-- Fullscreen Studio Flash Overlay -->
+  <div id="flashLayer" class="flash-layer"></div>
+
+  <!-- App Main Container -->
+  <div class="app-container">
+
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="brand-wrapper">
+        <div class="brand-icon">
+          <i class="fa-solid fa-camera-retro"></i>
+        </div>
+        <div class="brand-title">
+          <div>
+            Noir & Silver
+            <span class="badge-v2">PRO V2</span>
+          </div>
+          <span class="brand-tag">Studio Photobooth Suite</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Quick Switch Facing Mode (Selfie / Rear) -->
+        <button id="btnSwitchFacing" class="btn-header" title="Switch Front / Rear Camera">
+          <i class="fa-solid fa-camera-rotate"></i>
+          <span>Selfie</span>
+        </button>
+
+        <!-- Mirror Camera -->
+        <button id="btnFlipCamera" class="btn-header active" title="Mirror / Flip Camera Feed">
+          <i class="fa-solid fa-arrows-left-right"></i>
+          <span>Mirror</span>
+        </button>
+
+        <!-- Sound Toggle -->
+        <button id="btnSoundToggle" class="btn-header active" title="Audio Shutter & Ticks">
+          <i class="fa-solid fa-volume-high"></i>
+          <span>Sound</span>
+        </button>
+
+        <!-- Session Gallery -->
+        <button id="btnGalleryToggle" class="btn-header" title="Session Capture History (G)">
+          <i class="fa-solid fa-images"></i>
+          <span>Gallery</span>
+        </button>
+
+        <!-- Kiosk Fullscreen Mode -->
+        <button id="btnFullscreen" class="btn-header" title="Fullscreen Kiosk Standby Mode">
+          <i class="fa-solid fa-expand"></i>
+          <span>Kiosk</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Studio Split Layout -->
+    <main class="main-layout">
+
+      <!-- LEFT SECTION: CAMERA VIEWFINDER -->
+      <section class="viewfinder-section">
+        <div class="viewfinder-wrapper">
+          <div id="viewfinderBox" class="viewfinder-box aspect-4-3">
+
+            <!-- Live Camera Stream -->
+            <video id="videoStream" autoplay playsinline muted></video>
+
+            <!-- Framing Crosshair Corners -->
+            <div class="frame-corner top-left"></div>
+            <div class="frame-corner top-right"></div>
+            <div class="frame-corner bottom-left"></div>
+            <div class="frame-corner bottom-right"></div>
+
+            <!-- Viewfinder Header Overlay -->
+            <div class="viewfinder-overlay">
+              <div class="overlay-top">
+                <div id="statusBadge" class="status-badge">
+                  <span id="statusDot" class="status-dot"></span>
+                  <span>STUDIO LIVE</span>
+                </div>
+
+                <div id="sequenceProgress" class="sequence-progress">
+                  <i class="fa-solid fa-film"></i>
+                  <span id="sequenceText">Photo 1 of 4</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Countdown Overlay -->
+            <div id="countdownOverlay" class="countdown-overlay">
+              <div id="countdownNumber" class="countdown-number">3</div>
+              <div id="countdownLabel" class="countdown-label">GET READY</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Big Tactile Viewfinder Shutter Trigger Bar -->
+        <div class="viewfinder-controls">
+          <button id="btnShutter" class="btn-shutter" title="Take Photo (Spacebar)">
+            <div class="btn-shutter-inner"></div>
+          </button>
+        </div>
+      </section>
+
+      <!-- RIGHT SECTION: CONTROLS & STUDIO SUITE SIDEBAR -->
+      <aside class="controls-sidebar">
+
+        <!-- Navigation Tabs -->
+        <nav class="sidebar-tabs">
+          <button class="tab-btn active" data-tab="tabLayouts">
+            <i class="fa-solid fa-layer-group"></i>
+            <span>Layouts</span>
+          </button>
+          <button class="tab-btn" data-tab="tabFilters">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>Filters</span>
+          </button>
+          <button class="tab-btn" data-tab="tabFraming">
+            <i class="fa-solid fa-crop-simple"></i>
+            <span>Frame</span>
+          </button>
+          <button class="tab-btn" data-tab="tabBranding">
+            <i class="fa-solid fa-font"></i>
+            <span>Text & Stamps</span>
+          </button>
+          <button class="tab-btn" data-tab="tabDevices">
+            <i class="fa-solid fa-sliders"></i>
+            <span>Devices</span>
+          </button>
+        </nav>
+
+        <!-- Sidebar Content Panes -->
+        <div class="sidebar-content">
+
+          <!-- TAB 1: BOOTH FORMATS & LAYOUTS -->
+          <div id="tabLayouts" class="tab-pane active">
+            <div class="control-group">
+              <div class="control-title">
+                <span>Select Print Layout</span>
+                <span class="badge">8 Formats</span>
+              </div>
+
+              <div class="template-card-grid">
+                <!-- 1. Classic 4-Strip -->
+                <div class="template-card selected" data-template="strip-4">
+                  <div class="template-wireframe wireframe-strip-4">
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                  </div>
+                  <div class="template-info">
+                    <div class="template-name">Classic 4-Strip</div>
+                    <div class="template-shots">4 Photos • 2×6" Vertical</div>
+                  </div>
+                </div>
+
+                <!-- 2. Duplicate 2-in-1 Strip -->
+                <div class="template-card" data-template="double-strip-4">
+                  <div class="template-wireframe" style="flex-direction: row; gap: 4px;">
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                      <div class="wireframe-slot"></div>
+                      <div class="wireframe-slot"></div>
+                      <div class="wireframe-slot"></div>
+                      <div class="wireframe-slot"></div>
+                    </div>
+                    <div style="border-right: 1px dashed rgba(255,255,255,0.4);"></div>
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                      <div class="wireframe-slot"></div>
+                      <div class="wireframe-slot"></div>
+                      <div class="wireframe-slot"></div>
+                      <div class="wireframe-slot"></div>
+                    </div>
+                  </div>
+                  <div class="template-info">
+                    <div class="template-name">Twin 2-in-1 Cut</div>
+                    <div class="template-shots">4 Photos • 4×6" Dye-Sub</div>
+                  </div>
+                </div>
+
+                <!-- 3. Classic 3-Strip -->
+                <div class="template-card" data-template="strip-3">
+                  <div class="template-wireframe">
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                  </div>
+                  <div class="template-info">
+                    <div class="template-name">Classic 3-Strip</div>
+                    <div class="template-shots">3 Photos • 2×6" Strip</div>
+                  </div>
+                </div>
+
+                <!-- 4. Studio Quad 2x2 Grid -->
+                <div class="template-card" data-template="grid-2x2">
+                  <div class="template-wireframe wireframe-grid-2x2">
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                  </div>
+                  <div class="template-info">
+                    <div class="template-name">Studio Quad 2×2</div>
+                    <div class="template-shots">4 Photos • 4×6" Grid</div>
+                  </div>
+                </div>
+
+                <!-- 5. Storybook 6-Grid -->
+                <div class="template-card" data-template="grid-2x3">
+                  <div class="template-wireframe wireframe-grid-2x3">
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                  </div>
+                  <div class="template-info">
+                    <div class="template-name">Storybook 6-Grid</div>
+                    <div class="template-shots">6 Photos • 4×6" Story</div>
+                  </div>
+                </div>
+
+                <!-- 6. Vintage Polaroid -->
+                <div class="template-card" data-template="polaroid">
+                  <div class="template-wireframe wireframe-polaroid">
+                    <div class="wireframe-slot"></div>
+                  </div>
+                  <div class="template-info">
+                    <div class="template-name">Vintage Polaroid</div>
+                    <div class="template-shots">1 Photo • Classic Card</div>
+                  </div>
+                </div>
+
+                <!-- 7. Wide Panoramic Duo -->
+                <div class="template-card" data-template="wide-duo">
+                  <div class="template-wireframe wireframe-duo">
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                  </div>
+                  <div class="template-info">
+                    <div class="template-name">Panoramic Duo</div>
+                    <div class="template-shots">2 Photos • 6×4" Wide</div>
+                  </div>
+                </div>
+
+                <!-- 8. 35mm Film Roll Strip -->
+                <div class="template-card" data-template="film-35mm">
+                  <div class="template-wireframe" style="border: 1px dashed #eab308;">
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                    <div class="wireframe-slot"></div>
+                  </div>
+                  <div class="template-info">
+                    <div class="template-name">35mm Film Roll</div>
+                    <div class="template-shots">4 Photos • Sprocket Film</div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: VINTAGE & CLASSIC FILTERS -->
+          <div id="tabFilters" class="tab-pane">
+            <div class="control-group">
+              <div class="control-title">
+                <span>Color Grading & Film Stock</span>
+                <span class="badge">10 Presets</span>
+              </div>
+
+              <div class="filter-grid">
+                <!-- 1. Vintage 70s -->
+                <div class="filter-item selected" data-filter="vintage70s">
+                  <div class="filter-swatch swatch-vintage70s"></div>
+                  <span class="filter-name">Vintage 70s</span>
+                  <span class="filter-tagline">Warm amber nostalgia</span>
+                </div>
+
+                <!-- 2. Classic 20s Sepia -->
+                <div class="filter-item" data-filter="sepia20s">
+                  <div class="filter-swatch swatch-sepia20s"></div>
+                  <span class="filter-name">Classic Sepia</span>
+                  <span class="filter-tagline">1920s antique tone</span>
+                </div>
+
+                <!-- 3. Kodachrome 35mm -->
+                <div class="filter-item" data-filter="kodachrome">
+                  <div class="filter-swatch swatch-kodachrome"></div>
+                  <span class="filter-name">Kodachrome 35mm</span>
+                  <span class="filter-tagline">Vibrant analog film</span>
+                </div>
+
+                <!-- 4. Polaroid 600 Matte -->
+                <div class="filter-item" data-filter="polaroid600">
+                  <div class="filter-swatch swatch-polaroid600"></div>
+                  <span class="filter-name">Polaroid 600</span>
+                  <span class="filter-tagline">Faded instant matte</span>
+                </div>
+
+                <!-- 5. Silver Gelatin B&W -->
+                <div class="filter-item" data-filter="silverGelatin">
+                  <div class="filter-swatch swatch-silverGelatin"></div>
+                  <span class="filter-name">Silver Gelatin</span>
+                  <span class="filter-tagline">Fine art darkroom B&W</span>
+                </div>
+
+                <!-- 6. Cinema Noir 40s -->
+                <div class="filter-item" data-filter="noir">
+                  <div class="filter-swatch swatch-noir"></div>
+                  <span class="filter-name">Cinema Noir</span>
+                  <span class="filter-tagline">High contrast shadow crush</span>
+                </div>
+
+                <!-- 7. Retro Camcorder 90s -->
+                <div class="filter-item" data-filter="camcorder95">
+                  <div class="filter-swatch swatch-camcorder95"></div>
+                  <span class="filter-name">Camcorder 90s</span>
+                  <span class="filter-tagline">VHS cassette warmth</span>
+                </div>
+
+                <!-- 8. Golden Hour Glow -->
+                <div class="filter-item" data-filter="goldenHour">
+                  <div class="filter-swatch swatch-goldenHour"></div>
+                  <span class="filter-name">Golden Hour</span>
+                  <span class="filter-tagline">Luminous sunset skin tones</span>
+                </div>
+
+                <!-- 9. Pastel Soft Dream -->
+                <div class="filter-item" data-filter="pastelDream">
+                  <div class="filter-swatch swatch-pastelDream"></div>
+                  <span class="filter-name">Pastel Dream</span>
+                  <span class="filter-tagline">Dreamy highlight bloom</span>
+                </div>
+
+                <!-- 10. Natural Studio Pro -->
+                <div class="filter-item" data-filter="normal">
+                  <div class="filter-swatch swatch-normal"></div>
+                  <span class="filter-name">Natural Studio</span>
+                  <span class="filter-tagline">Balanced crisp fidelity</span>
+                </div>
+              </div>
+
+              <!-- Filter Intensity Slider -->
+              <div class="slider-wrapper" style="margin-top: 14px;">
+                <div class="slider-label-row">
+                  <span>Filter Intensity</span>
+                  <span id="intensityValueDisplay" style="font-weight: 700; color: var(--accent-gold);">100%</span>
+                </div>
+                <input type="range" id="filterIntensitySlider" class="custom-range" min="0" max="100" value="100">
+              </div>
+
+              <!-- Analog Film Grain Slider -->
+              <div class="slider-wrapper">
+                <div class="slider-label-row">
+                  <span>Analog Film Grain</span>
+                  <span id="grainValueDisplay" style="font-weight: 700; color: var(--accent-gold);">18%</span>
+                </div>
+                <input type="range" id="filmGrainSlider" class="custom-range" min="0" max="60" value="18">
+              </div>
+
+            </div>
+          </div>
+
+          <!-- TAB 3: FRAME FORMAT EDITING -->
+          <div id="tabFraming" class="tab-pane">
+            
+            <!-- Frame Color Picker -->
+            <div class="control-group">
+              <div class="control-title">
+                <span>Frame Color & Finish</span>
+                <span class="badge">12 Tones</span>
+              </div>
+              <div class="color-picker-row">
+                <div class="color-option selected" data-color="#111116" style="background: #111116;" title="Obsidian Black"></div>
+                <div class="color-option" data-color="#1e293b" style="background: #1e293b;" title="Slate Navy"></div>
+                <div class="color-option" data-color="#ffffff" style="background: #ffffff;" title="Pure White"></div>
+                <div class="color-option" data-color="#f5f5f0" style="background: #f5f5f0;" title="Vintage Ivory"></div>
+                <div class="color-option" data-color="#94a3b8" style="background: #94a3b8;" title="Titanium Silver"></div>
+                <div class="color-option" data-color="#f43f5e" style="background: #f43f5e;" title="Dusty Rose"></div>
+                <div class="color-option" data-color="#10b981" style="background: #10b981;" title="Sage Green"></div>
+                <div class="color-option" data-color="#78350f" style="background: #78350f;" title="Kraft Brown"></div>
+                <div class="color-option" data-color="#eab308" style="background: #eab308;" title="Champagne Gold"></div>
+                <div class="color-option" data-color="#881337" style="background: #881337;" title="Crimson Velvet"></div>
+                <div class="color-option" data-color="#6366f1" style="background: #6366f1;" title="Electric Indigo"></div>
+                <input type="color" id="customColorInput" class="custom-color-picker" value="#111116" title="Custom Hex Picker">
+              </div>
+            </div>
+
+            <!-- Frame Geometry Customization -->
+            <div class="control-group">
+              <div class="control-title">
+                <span>Border Padding & Gaps</span>
+              </div>
+
+              <!-- Border Padding -->
+              <div class="slider-wrapper">
+                <div class="slider-label-row">
+                  <span>Outer Frame Padding</span>
+                  <span id="paddingValueDisplay" style="font-weight: 700; color: var(--accent-gold);">36px</span>
+                </div>
+                <input type="range" id="borderPaddingSlider" class="custom-range" min="16" max="72" value="36">
+              </div>
+
+              <!-- Photo Gap -->
+              <div class="slider-wrapper">
+                <div class="slider-label-row">
+                  <span>Photo Gap Spacing</span>
+                  <span id="gapValueDisplay" style="font-weight: 700; color: var(--accent-gold);">20px</span>
+                </div>
+                <input type="range" id="photoGapSlider" class="custom-range" min="6" max="50" value="20">
+              </div>
+
+              <!-- Corner Radius -->
+              <div class="slider-wrapper">
+                <div class="slider-label-row">
+                  <span>Corner Roundness</span>
+                  <span id="radiusValueDisplay" style="font-weight: 700; color: var(--accent-gold);">8px</span>
+                </div>
+                <input type="range" id="cornerRadiusSlider" class="custom-range" min="0" max="36" value="8">
+              </div>
+
+            </div>
+          </div>
+
+          <!-- TAB 4: TEXT & STAMPS -->
+          <div id="tabBranding" class="tab-pane">
+            <div class="control-group">
+              <div class="control-title">
+                <span>Event Typography & Branding</span>
+              </div>
+
+              <!-- Font Family Selector -->
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Header Font Style</label>
+                <div class="select-wrapper">
+                  <select id="fontSelect" class="custom-select">
+                    <option value="Playfair Display" selected>Playfair Display (Luxury Serif)</option>
+                    <option value="Cinzel">Cinzel (Classic Roman / Antique)</option>
+                    <option value="Special Elite">Special Elite (Retro Typewriter)</option>
+                    <option value="Bebas Neue">Bebas Neue (Bold Kiosk Modern)</option>
+                    <option value="Inter">Inter (Clean Studio Minimal)</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down select-arrow"></i>
+                </div>
+              </div>
+
+              <!-- Event Title -->
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Main Event Title</label>
+                <input type="text" id="customEventTitle" class="custom-input" value="STUDIO PHOTOBOOTH" placeholder="e.g. Maria's 21st, Friends Forever">
+              </div>
+
+              <!-- Subtitle -->
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Tagline / Subtitle</label>
+                <input type="text" id="customSubtitle" class="custom-input" value="PRO EDITION • NOIR & SILVER" placeholder="e.g. Best Night Ever">
+              </div>
+
+              <!-- Location -->
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Location Stamp (Optional)</label>
+                <input type="text" id="customLocation" class="custom-input" placeholder="e.g. Vigan City, Manila Studio">
+              </div>
+
+              <!-- Date Toggle -->
+              <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 4px;">
+                <span style="font-size: 0.85rem; color: var(--text-secondary);">Include Date Stamp</span>
+                <input type="checkbox" id="toggleDateStamp" checked style="accent-color: var(--accent-gold); width: 18px; height: 18px; cursor: pointer;">
+              </div>
+            </div>
+
+            <!-- Vintage Rubber Stamps & Stickers -->
+            <div class="control-group">
+              <div class="control-title">
+                <span>Stamps & Embellishments</span>
+                <button id="btnClearStickers" style="background: none; border: none; color: var(--accent-red); font-size: 0.75rem; cursor: pointer;">Clear All</button>
+              </div>
+
+              <div class="sticker-chips-row">
+                <button class="sticker-chip" data-sticker="stamp-approved">
+                  <i class="fa-solid fa-stamp" style="color: #dc2626;"></i> Approved
+                </button>
+                <button class="sticker-chip" data-sticker="stamp-original">
+                  <i class="fa-solid fa-film" style="color: #ca8a04;"></i> 35mm Film
+                </button>
+                <button class="sticker-chip" data-sticker="stamp-vip">
+                  <i class="fa-solid fa-star" style="color: #eab308;"></i> VIP Access
+                </button>
+                <button class="sticker-chip" data-sticker="stamp-noir">
+                  <i class="fa-solid fa-camera-retro"></i> Noir Archive
+                </button>
+                <button class="sticker-chip" data-sticker="emoji-sparkles">✨ Sparkles</button>
+                <button class="sticker-chip" data-sticker="emoji-heart">❤️ Heart</button>
+                <button class="sticker-chip" data-sticker="emoji-sunglasses">😎 Shades</button>
+                <button class="sticker-chip" data-sticker="emoji-party">🎉 Party</button>
+                <button class="sticker-chip" data-sticker="emoji-crown">👑 Crown</button>
+                <button class="sticker-chip" data-sticker="emoji-camera">📸 Camera</button>
+                <button class="sticker-chip" data-sticker="emoji-disco">🪩 Disco</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 5: DEVICES, RESOLUTION & TIMER -->
+          <div id="tabDevices" class="tab-pane">
+            <!-- Camera Device Selector -->
+            <div class="control-group">
+              <div class="control-title">
+                <span>Camera Device Selection</span>
+                <i class="fa-solid fa-video"></i>
+              </div>
+              <div class="select-wrapper">
+                <select id="cameraSelect" class="custom-select">
+                  <option value="">Detecting camera devices...</option>
+                </select>
+                <i class="fa-solid fa-chevron-down select-arrow"></i>
+              </div>
+            </div>
+
+            <!-- Resolution Quality -->
+            <div class="control-group">
+              <div class="control-title">
+                <span>Camera Feed Resolution</span>
+                <i class="fa-solid fa-sliders"></i>
+              </div>
+              <div class="select-wrapper">
+                <select id="resolutionSelect" class="custom-select">
+                  <option value="1080p" selected>1080p Full HD (Recommended)</option>
+                  <option value="4k">4K Ultra HD (Studio High-Res)</option>
+                  <option value="720p">720p HD (Low-Power / Mobile)</option>
+                </select>
+                <i class="fa-solid fa-chevron-down select-arrow"></i>
+              </div>
+            </div>
+
+            <!-- Aspect Ratio Selector -->
+            <div class="control-group">
+              <div class="control-title">
+                <span>Frame Ratio</span>
+                <span class="badge">Live View</span>
+              </div>
+              <div class="option-grid cols-4">
+                <button class="btn-option selected" data-aspect="4/3">
+                  <strong>4:3</strong>
+                  <span style="font-size: 0.65rem;">Classic</span>
+                </button>
+                <button class="btn-option" data-aspect="16/9">
+                  <strong>16:9</strong>
+                  <span style="font-size: 0.65rem;">Wide</span>
+                </button>
+                <button class="btn-option" data-aspect="1/1">
+                  <strong>1:1</strong>
+                  <span style="font-size: 0.65rem;">Square</span>
+                </button>
+                <button class="btn-option" data-aspect="3/2">
+                  <strong>3:2</strong>
+                  <span style="font-size: 0.65rem;">Photo</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Countdown Timer Duration -->
+            <div class="control-group">
+              <div class="control-title">
+                <span>Countdown Counter</span>
+                <i class="fa-regular fa-clock"></i>
+              </div>
+              <div class="option-grid cols-4">
+                <button class="btn-option" data-timer="0">Off</button>
+                <button class="btn-option selected" data-timer="3">3s</button>
+                <button class="btn-option" data-timer="5">5s</button>
+                <button class="btn-option" data-timer="10">10s</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Sidebar Bottom Master Shutter Trigger -->
+        <footer class="sidebar-footer">
+          <button id="btnStartSession" class="btn-start-session">
+            <i class="fa-solid fa-camera"></i>
+            <span>Start Session (4 Photos)</span>
+          </button>
+        </footer>
+
+      </aside>
+
+    </main>
+
+  </div>
+
+  <!-- RESULT & COMPOSITE PREVIEW MODAL -->
+  <div id="resultModal" class="modal-backdrop">
+    <div class="result-modal">
+
+      <!-- Left Panel: Final Rendered Composite Canvas -->
+      <div class="result-preview-panel">
+        <canvas id="compositeCanvas"></canvas>
+      </div>
+
+      <!-- Right Panel: Save Formats, Print & Share Controls -->
+      <div class="result-actions-panel">
+
+        <div>
+          <div class="result-header">
+            <div>
+              <h2 class="result-title">Studio Masterpiece</h2>
+              <p class="result-subtitle">High-resolution 300 DPI composite ready to print & share</p>
+            </div>
+            <button id="btnCloseModal" class="btn-close-modal" title="Close Preview (Esc)">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <div style="background: rgba(255, 255, 255, 0.04); border-radius: var(--radius-md); padding: 12px; margin-bottom: 16px;">
+            <p style="font-size: 0.8rem; color: var(--accent-gold); font-weight: 700; margin-bottom: 4px;">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Live Quick Tweak
+            </p>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
+              Change filters, frames, or text in the sidebar right now to watch your master print update live!
+            </p>
+          </div>
+
+          <!-- JPEG Quality Control -->
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <span style="font-size: 0.85rem; color: var(--text-secondary);">JPEG Export Quality</span>
+            <select id="jpgQualitySelect" class="custom-select" style="width: 140px; height: 34px;">
+              <option value="1.0">100% Maximum</option>
+              <option value="0.92" selected>92% High Quality</option>
+              <option value="0.80">80% Compact</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="result-buttons">
+          <!-- Print Photo Strip -->
+          <button id="btnPrintPhoto" class="btn-primary-action">
+            <i class="fa-solid fa-print"></i>
+            <span>Print Photo Strip</span>
+          </button>
+
+          <!-- Save PNG High-Res -->
+          <button id="btnDownloadPng" class="btn-secondary-action">
+            <i class="fa-solid fa-download"></i>
+            <span>Save Lossless PNG (300 DPI)</span>
+          </button>
+
+          <!-- Save JPEG -->
+          <button id="btnDownloadJpg" class="btn-secondary-action">
+            <i class="fa-regular fa-image"></i>
+            <span>Save JPEG Image</span>
+          </button>
+
+          <!-- Save WebP -->
+          <button id="btnDownloadWebp" class="btn-secondary-action">
+            <i class="fa-solid fa-file-image"></i>
+            <span>Save Modern WebP</span>
+          </button>
+
+          <!-- Animated Boomerang Loop -->
+          <button id="btnDownloadGif" class="btn-secondary-action">
+            <i class="fa-solid fa-film"></i>
+            <span>Export Boomerang Video Loop</span>
+          </button>
+
+          <!-- Mobile Native Share -->
+          <button id="btnShareMobile" class="btn-secondary-action">
+            <i class="fa-solid fa-share-nodes"></i>
+            <span>Share to Mobile / AirDrop</span>
+          </button>
+
+          <!-- Copy to Clipboard -->
+          <button id="btnCopyClipboard" class="btn-secondary-action">
+            <i class="fa-regular fa-clipboard"></i>
+            <span>Copy Image to Clipboard</span>
+          </button>
+
+          <!-- Retake Session -->
+          <button id="btnRetakeAll" class="btn-secondary-action btn-retake">
+            <i class="fa-solid fa-arrow-rotate-left"></i>
+            <span>Retake Session</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SESSION GALLERY SLIDE-OUT DRAWER -->
+  <aside id="galleryDrawer" class="gallery-drawer">
+    <div class="gallery-header">
+      <div class="gallery-title">
+        <i class="fa-solid fa-images" style="color: var(--accent-gold);"></i>
+        <span>Studio Session History</span>
+      </div>
+      <button id="btnCloseGallery" class="btn-close-modal" title="Close Gallery">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Gallery Thumbnails Grid -->
+    <div id="galleryGrid" class="gallery-grid"></div>
+
+    <div class="gallery-footer">
+      <button id="btnClearGallery" class="btn-secondary-action btn-retake" style="width: 100%;">
+        <i class="fa-regular fa-trash-can"></i>
+        <span>Clear Session History</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Application Logic Modules -->
+  <script src="js/v2-audio.js"></script>
+  <script src="js/v2-camera.js"></script>
+  <script src="js/v2-filters.js"></script>
+  <script src="js/v2-stickers.js"></script>
+  <script src="js/v2-templates.js"></script>
+  <script src="js/v2-gallery.js"></script>
+  <script src="js/v2-app.js"></script>
+</body>
+</html>
